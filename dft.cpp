@@ -72,7 +72,7 @@ void get_gaussian(Mat complexI, bool invert)
 	Mat outputImage;
 	Mat kernelSpec;
 
-	gaussianMask = createGaussianHighPassFilter(complexI.size(),15, invert);
+	gaussianMask = createHighOrLowPassFilter(complexI.size(),15, invert);
 	imshow("Kernel", gaussianMask);
 	gaussianMask = crop_and_rearrange(gaussianMask);
 
@@ -115,7 +115,7 @@ double gaussianCoeff(double u, double v, double d0)
 	return 1.0 - cv::exp((-d*d) / (2 * d0*d0));
 }
 
-Mat createGaussianHighPassFilter(Size size, double cutoffInPixels, bool invert)
+Mat createHighOrLowPassFilter(Size size, double cutoffInPixels, bool invert)
 {
 	Mat image(size, CV_64F);
 

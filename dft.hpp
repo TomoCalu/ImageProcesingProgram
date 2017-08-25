@@ -21,7 +21,7 @@ Mat crop_and_rearrange(Mat);
 
 void get_gaussian(Mat, bool);
 
-Mat createGaussianHighPassFilter(Size, double, bool);
+Mat createHighOrLowPassFilter(Size, double, bool);
 
 double gaussianCoeff(double, double, double);
 
