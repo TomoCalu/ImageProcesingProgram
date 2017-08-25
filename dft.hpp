@@ -2,28 +2,27 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
-#include <iostream>
+#include <stdio.h>
 
 int MAX_KERNEL_LENGTH = 31;
 
 using namespace cv;
 using namespace std;
 
-Mat crop_and_rearrange(Mat);
-
-Mat action_switch(int, Mat);
+void action_switch(int, Mat);
 
 Mat get_dft(Mat);
 
+void get_idft(Mat);
+
 void get_magnitude(Mat);
 
-Mat get_idft(Mat);
+Mat crop_and_rearrange(Mat);
 
-cv::Mat createGaussianHighPassFilter(cv::Size, double, bool);
+void get_gaussian(Mat, bool);
 
-double pixelDistance(double, double);
+Mat createGaussianHighPassFilter(Size, double, bool);
 
 double gaussianCoeff(double, double, double);
 
-Mat get_gaussian(Mat, bool);
-
+void get_convolution(Mat);
