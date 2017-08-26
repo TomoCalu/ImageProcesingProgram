@@ -50,7 +50,6 @@ void get_idft(Mat complexI)
 
 void get_convolution(Mat image) 
 {
-
 	Point anchor = Point(-1, -1);
 	double delta = 0;
 	int ddepth = -1;
@@ -66,13 +65,38 @@ void get_convolution(Mat image)
 	imshow("Output Image", convolvedImage);
 }
 
-void get_gaussian(Mat complexI, bool invert)
+void get_high_or_low_pass_filter(Mat complexI, bool invert)
 {
 	Mat gaussianMask;
 	Mat outputImage;
 	Mat kernelSpec;
 
-	gaussianMask = createHighOrLowPassFilter(complexI.size(),15, invert);
+	gaussianMask = create_high_or_low_pass_filter(complexI.size(),15, invert);
+	imshow("Kernel", gaussianMask);
+	gaussianMask = crop_and_rearrange(gaussianMask);
+
+	Mat planes[] = { Mat_<float>(gaussianMask), Mat::zeros(gaussianMask.size(), CV_32F) };
+	merge(planes, 2, kernelSpec);
+
+	mulSpectrums(complexI, kernelSpec, complexI, DFT_ROWS);
+
+	get_magnitude(complexI);
+	get_idft(complexI);
+}
+
+void get_band_pass_filter(Mat complexI)
+{
+	Mat gaussianMask;
+	Mat highPassMask;
+	Mat lowPassMask;
+	Mat outputImage;
+	Mat kernelSpec;
+
+	highPassMask = create_high_or_low_pass_filter(complexI.size(), 9, true);
+	lowPassMask = create_high_or_low_pass_filter(complexI.size(), 75, false);
+
+	gaussianMask = highPassMask + lowPassMask;
+
 	imshow("Kernel", gaussianMask);
 	gaussianMask = crop_and_rearrange(gaussianMask);
 
@@ -109,13 +133,13 @@ Mat crop_and_rearrange(Mat image)
 	return image;
 }
 
-double gaussianCoeff(double u, double v, double d0)
+double gaussian_coeff(double u, double v, double d0)
 {
 	double d = sqrt(u*u + v*v);
 	return 1.0 - cv::exp((-d*d) / (2 * d0*d0));
 }
 
-Mat createHighOrLowPassFilter(Size size, double cutoffInPixels, bool invert)
+Mat create_high_or_low_pass_filter(Size size, double cutoffInPixels, bool invert)
 {
 	Mat image(size, CV_64F);
 
@@ -125,7 +149,7 @@ Mat createHighOrLowPassFilter(Size size, double cutoffInPixels, bool invert)
 	{
 		for (int v = 0; v < image.cols; v++)
 		{
-		    image.at<double>(u, v) = gaussianCoeff(u - center.y, v - center.x, cutoffInPixels);
+		    image.at<double>(u, v) = gaussian_coeff(u - center.y, v - center.x, cutoffInPixels);
 			if (invert) image.at<double>(u, v) = 1 - image.at<double>(u, v);
 		}
 	}
@@ -149,18 +173,20 @@ void action_switch(int action, Mat inputImage)
 		break;
 	case(2):
 		complexI = get_dft(inputImage);
-		get_magnitude(complexI);
-		get_gaussian(complexI, false);
+		get_high_or_low_pass_filter(complexI, false);
 		break;
 	case(3):
 		complexI = get_dft(inputImage);
-		get_magnitude(complexI);
-		get_gaussian(complexI, true);
+		get_high_or_low_pass_filter(complexI, true);
 		break;
 	case(4):
-		get_convolution(inputImage);
+		complexI = get_dft(inputImage);
+		get_band_pass_filter(complexI);
 		break;
 	case(5):
+		get_convolution(inputImage);
+		break;
+	case(6):
 		for (int i = 1; i < MAX_KERNEL_LENGTH - 15; i = i + 2)
 		{
 			bilateralFilter(inputImage, outputImage, i, i * 2, i / 2);
@@ -198,8 +224,9 @@ int main(int argc, char ** argv)
 			   "1 - Get frequency magnitude spectrum\n"
 		   	   "2 - Apply high pass filter on an image\n"
 			   "3 - Apply low pass filter on an image\n"
-			   "4 - Apply convolution on an image\n"
-			   "5 - Remove noise from an image\n\n");
+			   "4 - Apply band pass filter on an image\n"
+			   "5 - Apply convolution on an image\n"
+			   "6 - Remove noise from an image\n\n");
 	
 		printf("Enter a number from the given range: ");
 		scanf("%d", &action);
@@ -208,7 +235,7 @@ int main(int argc, char ** argv)
 		action_switch(action, inputImage);
 		printf("\n");
 
-		if (action <= 0 || action >= 6) 
+		if (action <= 0 || action >= 7) 
 		{
 			printf("Number you inserted is lower than 1 or higher than 6 \n "
 				   "Ending Program...\n");

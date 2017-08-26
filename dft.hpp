@@ -19,10 +19,12 @@ void get_magnitude(Mat);
 
 Mat crop_and_rearrange(Mat);
 
-void get_gaussian(Mat, bool);
+void get_high_or_low_pass_filter(Mat, bool);
 
-Mat createHighOrLowPassFilter(Size, double, bool);
+void get_band_pass_filter(Mat);
 
-double gaussianCoeff(double, double, double);
+Mat create_high_or_low_pass_filter(Size, double, bool);
+
+double gaussian_coeff(double, double, double);
 
 void get_convolution(Mat);
